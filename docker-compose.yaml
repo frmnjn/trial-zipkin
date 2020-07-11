@@ -1,0 +1,84 @@
+version: "3.7"
+services:
+  front-envoy:
+    build:
+      context: .
+      dockerfile: Dockerfile-frontenvoy
+    volumes:
+      - ./front-envoy-zipkin.yaml:/etc/front-envoy.yaml
+    networks:
+      - envoymesh
+    expose:
+      - "8000"
+      - "8001"
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+
+  service1:
+    build:
+      context: .
+      dockerfile: Dockerfile-service-new
+    volumes:
+      - ./service-envoy-zipkin.yaml:/etc/service-envoy.yaml
+    networks:
+      envoymesh:
+        aliases:
+          - service1
+    environment:
+      - SERVICE_NAME=1
+    expose:
+      - "9000"
+
+  service2:
+    build:
+      context: .
+      dockerfile: Dockerfile-service-new
+    volumes:
+      - ./service-envoy-zipkin.yaml:/etc/service-envoy.yaml
+    networks:
+      envoymesh:
+        aliases:
+          - service2
+    environment:
+      - SERVICE_NAME=2
+    expose:
+      - "9000"
+
+  zipkin:
+    image: openzipkin/zipkin
+    networks:
+      envoymesh:
+        aliases:
+          - zipkin
+    expose:
+      - "9411"
+    ports:
+      - "9411:9411"
+
+  grafana:
+    image: grafana/grafana
+    networks:
+      envoymesh:
+        aliases:
+          - grafana
+    expose:
+      - "3000"
+    ports:
+      - "3000:3000"
+
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      envoymesh:
+        aliases:
+          - prometheus
+    expose:
+      - "9090"
+    ports:
+      - "9090:9090"
+
+networks:
+  envoymesh: {}

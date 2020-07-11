@@ -1,0 +1,11 @@
+FROM envoyproxy/envoy-dev:latest
+
+RUN apt-get update && apt-get install openjdk-8-jdk curl -y
+
+COPY app.jar /app.jar
+ADD start.sh /start.sh
+EXPOSE 10000
+EXPOSE 9000
+
+RUN chmod u+x /start.sh
+ENTRYPOINT /start.sh
